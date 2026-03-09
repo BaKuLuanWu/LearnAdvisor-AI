@@ -68,7 +68,7 @@ class QueryRecommend:
         BASE_FREQ = 5  # 基准随机种子（对应50%推荐概率）
         BASE_QUANT = 3  # 基准推荐数量
 
-        # 推荐概率映射表（frequency -> 推荐概率）
+        # 概率映射表（frequency -> 推荐概率）
         # 1->10%, 2->20%, 3->30%, 4->40%, 5->50%,
         # 6->60%, 7->70%, 8->80%, 9->90%, 10->100%
 
@@ -80,7 +80,7 @@ class QueryRecommend:
         true_count = sum(1 for obj in context if obj.get("recommend", False))
         ratio_true = true_count / len(context)
 
-        # 期望的推荐比例是多少？这里设定目标比例在30%-50%之间
+        # 期望的推荐比例设定在30%-50%之间
         TARGET_MIN = 0.3
         TARGET_MAX = 0.5
 
