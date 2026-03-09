@@ -1,0 +1,43 @@
+# python == 3.12.12
+
+# 核心框架
+fastapi==0.104.1
+uvicorn[standard]==0.24.0.post1
+pydantic
+
+# LangChain 生态
+langchain==1.2.7
+langchain-community==0.4.1
+langchain-openai==1.1.7
+langgraph==1.0.7
+tiktoken==0.12.0
+
+# 数据处理
+numpy
+pandas
+
+# 向量数据库
+chromadb
+
+# PostgreSql数据库
+sqlalchemy==2.0.45
+psycopg2-binary==2.9.11
+
+# 文档处理核心
+unstructured==0.10.30
+pypdf==3.17.4
+pymupdf==1.23.8
+pdf2image==1.16.3
+pillow==10.1.0
+# opencv-python-headless==4.8.1.78
+pdfplumber==0.10.3
+python-docx==1.1.0
+
+# 阿里云
+dashscope==1.14.0
+
+# 间接依赖（会自动安装，这里列出用于透明性）
+# python-multipart==0.0.6  # FastAPI 文件上传
+# starlette==0.27.0  # FastAPI 依赖
+# typing-extensions==4.8.0  # Python 3.11+ 兼容
+# sqlite3  # Python 内置

@@ -1,0 +1,154 @@
+
+.gradio-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    height: 100vh !important;
+    gap: 0 !important;
+}
+
+/* ========== 主界面容器 ========== */
+.main-container {
+    height: 100vh !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: white;
+    display: flex !important;
+    flex-direction: column !important;  /* 垂直排列 */
+}
+
+.head-container{
+    height: 6vh;
+    display: flex;
+    align-items: flex-end;
+    text-align: center;
+    flex-shrink: 0;  /* 防止头部被压缩 */
+}
+
+.body-container{
+    flex: 1 !important;  /* 关键：占据剩余所有空间 */
+    min-height: 0;      /* 防止内容溢出 */
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+.bubble-wrap.svelte-1e1jlin.svelte-1e1jlin.svelte-1e1jlin{
+    padding-left: 70px;
+    padding-right: 70px;
+}
+
+.enter-bar{
+    position: absolute !important;
+    bottom: 20px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+
+    width: 90% !important;
+    max-width: 800px !important;
+    min-width: 300px !important;
+    height: auto !important;
+    min-height: 120px !important;
+    max-height: 160px !important;
+
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 15px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+    z-index: 100 !important;
+}
+
+.enter-row{
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-around !important;
+}
+
+/* 上传按钮 */
+#upload-button {
+    width: 150px !important;
+    height: 50px !important;
+    min-width: 80px !important;
+    border-radius: 8px !important;
+    
+    /* 颜色设置 */
+    background-color: #f8f0ff !important;  /* 淡粉色背景 */
+    color: #7c3aed !important;            /* 蓝紫色字体 */
+    border: 1px solid #d8b4fe !important;  /* 浅紫边框 */
+}
+
+/* 消息输入框 */
+#message-input {
+    height: 102px !important;
+    overflow: auto !important;
+    border-radius: 8px !important;
+    border: 1px solid #d1d5db !important;
+    padding: 8px !important;
+}
+
+/* 发送按钮 */
+#send-button {
+    width: 150px !important;
+    height: 50px !important;
+    min-width: 80px !important;
+    border-radius: 8px !important;
+}
+
+.sidebar-container{
+    padding-left: 10px;
+    padding-right: 5px;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.sidebar-title{
+    height: 100px;
+    display: flex;
+    align-items: center;
+}
+
+.conversation_container{
+    height: 560px !important;
+    min-height: 550px !important;
+    overflow-y: auto !important;
+}
+
+.time-title{
+    margin-left: 8px;
+    color: rgb(138, 142, 149);
+}
+
+.user_button_container{
+    height: 70px;
+    display: flex;
+    align-items: center;
+}
+
+#new-chat-button {
+    margin-top: -25px !important;
+    margin-bottom: 10px !important;
+    height: 50px !important;
+    width: 285px !important;
+    border-radius: 15px !important;
+}
+
+#old-chat-button{
+    height: 50px !important;
+    width: 285px !important;
+    max-width: 285px !important;
+
+    justify-content: left !important;
+    border-radius: 12px !important;
+    white-space: nowrap !important;      /* 禁止换行 */
+    overflow: hidden !important;         /* 隐藏溢出 */
+}
+
+#user_button{
+    height: 50px !important;
+    width: 285px !important;
+    max-width: 285px !important;
+    justify-content: left !important;
+    border-radius: 12px !important;
+}
+
