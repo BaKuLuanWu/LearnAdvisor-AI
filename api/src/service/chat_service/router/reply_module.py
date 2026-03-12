@@ -6,6 +6,7 @@ from src.config.prompt.intent import (
 )
 import os
 from langchain_openai import ChatOpenAI
+import asyncio
 from src.infra.search_tool import search_tool
 from src.dao import chat_dao
 from src.service.upload_file_service import UploadFileService
@@ -28,7 +29,7 @@ class ReplyModule:
             openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
         )
 
-    def process(
+    async def process(
         self,
         conv_id: str,
         user_input: str,
@@ -72,12 +73,11 @@ class ReplyModule:
                     extra_context=extra_context, knowledge=knowledge_context
                 )
 
-        return self._get_ai_response_simple(
-            user_input, prompt, chat_history
-        )
+        async for chunk in self._get_ai_response_simple(user_input, prompt, chat_history):
+            yield chunk
 
     # 近期记忆只有最近五轮
-    def _get_ai_response_simple(self, user_input, prompt, chat_history):
+    async def _get_ai_response_simple(self, user_input, prompt, chat_history):
         print(f"\n提示词查看:\n{prompt}")
         print(f"近期记忆长度:{len(chat_history)}")
         messages = [{"role": "system", "content": prompt}]
@@ -90,9 +90,8 @@ class ReplyModule:
 
         messages.append({"role": "user", "content": user_input})
 
-        response = self.llm.invoke(messages)
-        response_content = response.content
-        print(f"模型回复:{response_content}")
-
-        return response_content
-
+        for chunk in self.llm.stream(messages):
+            if chunk.content:
+                yield chunk.content
+                print(1)
+                await asyncio.sleep(0)

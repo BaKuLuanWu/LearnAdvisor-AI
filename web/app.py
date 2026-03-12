@@ -6,6 +6,7 @@ import os
 import gradio as gr
 from typing import List, Tuple
 from api_client import APIClient
+import time
 from components.sidebar import create_sidebar
 
 
@@ -152,9 +153,11 @@ class DeepSeekChatFrontend:
             send_btn.click(
                 fn=self._handle_send_message,
                 inputs=[msg_input, file_upload, self.chatbot],
-                outputs=[self.chatbot, msg_input, file_upload],
+                outputs=[self.chatbot, msg_input, file_upload]
             ).then(
-                fn=self._get_ai_response, inputs=[self.chatbot], outputs=[self.chatbot]
+                fn=self._get_ai_response,
+                inputs=[self.chatbot],
+                outputs=[self.chatbot]
             )
 
     def _load_css(self):
@@ -261,24 +264,24 @@ class DeepSeekChatFrontend:
         # 清空输入
         return (chat_history, "", [])
 
-    def _get_ai_response(self, chat_history: List) -> List:
-        """获取AI回复"""
-        print("开始获取AI回复")
-        if not chat_history or not self.current_conversation_id:
+    def _get_ai_response(self, chat_history: List):
+        """获取AI回复（流式）"""
+        print("开始获取AI回复（流式）")
+        if not chat_history or not self.current_conversation_id or chat_history[-1][1]:
             return chat_history
 
-        # 此处要做异常处理
-        ai_content = self.api_client.chat(
+        # 初始化AI回复内容
+        ai_message = ""
+
+        # 调用流式API
+        for chunk in self.api_client.chat_stream(
             self.current_conversation_id, self.current_user_input, self.current_files
-        )
-        print("返回结果")
-        # 更新聊天历史
-        if chat_history[-1][1] is None:  # 只有用户消息
-            chat_history[-1] = (chat_history[-1][0], ai_content)
-        else:
-            return chat_history
-
-        return chat_history
+        ):
+            if chunk:
+                ai_message += chunk
+                print(f"流式输出:{chunk}")
+                chat_history[-1] = (chat_history[-1][0], ai_message)
+                yield chat_history
 
     def launch(self):
         """启动应用"""

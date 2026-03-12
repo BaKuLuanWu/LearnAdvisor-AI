@@ -54,7 +54,7 @@ class APIClient:
 
     def chat(
         self, conv_id: str, user_input: str, files: Optional[List[str]] = None
-    ) -> str:
+    ):
         """调用AI聊天接口"""
         try:
             payload = {
@@ -65,12 +65,34 @@ class APIClient:
             if files:
                 payload["files"] = files
 
-            response = requests.post(f"{self.base_url}", json=payload)
+            response = requests.post(f"{self.base_url}", json=payload,stream=True)
 
-            print(f"聊天接口响应:{response.json()}")
-            return response.json()["data"]
+            for chunk in response.iter_content(chunk_size=None):
+                if chunk:
+                    chunk_text = chunk.decode("utf-8")
+                    print(chunk_text)
+                    yield chunk_text
         except:
             return None
+    
+    def chat_stream(self, conv_id: str, user_input: str, files: Optional[List[str]] = None):
+        """流式调用AI聊天接口，返回生成器"""
+        payload = {
+            "user_id": self.user_id,
+            "conv_id": conv_id,
+            "user_input": user_input,
+        }
+        if files:
+            payload["files"] = files
+
+        # 使用 stream=True 启用流式响应
+        response = requests.post(f"{self.base_url}", json=payload, stream=True)
+
+        for chunk in response.iter_content(chunk_size=None):
+            if chunk:
+                chunk_text =  chunk.decode('utf-8')
+                print(chunk_text)
+                yield chunk_text
 
     def delete_conversation(self, conversation_id: str) -> bool:
         """删除对话"""

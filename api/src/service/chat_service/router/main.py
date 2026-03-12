@@ -9,6 +9,8 @@ from ..query_recommend import query_recommend
 from .reply_module import ReplyModule
 from .dialog_state import DialogState
 from .context_query_engine import context_query_engine
+from src.model.dto.response.chat_response_dto import ChatResponseDTO
+import asyncio
 from src.config import setup_logging
 
 logger = setup_logging()
@@ -78,10 +80,10 @@ class TaskRouter:
             intent = "unknown"
             slots = {"course": pre_search_result, "profession": pre_search_result}
             for slot_name, value in slots.items():
-                    state.update_slot(slot_name, value)
+                state.update_slot(slot_name, value)
             print(f"前置查询处结果:{pre_search_result}")
             return self.action_handlers["ask_clarification"](
-                    state, pre_search_result, "unknown"
+                state, pre_search_result, "unknown"
             )
         else:
             intent_result = IntentRecognizer().recognize(user_input, intent_history)
@@ -246,9 +248,7 @@ class DialogueManager:
         self.router = TaskRouter()
         self.reply_module = ReplyModule()
 
-    async def process(
-        self, dto: ChatQueryDTO, chat_history: list, extra_context: str
-    ) -> Dict:
+    async def process(self, dto: ChatQueryDTO, chat_history: list, extra_context: str):
         """处理用户输入"""
         conv_id = dto.conv_id
         user_input = dto.user_input
@@ -276,27 +276,48 @@ class DialogueManager:
 
         if action_result["action"] == "execute_task":
             print("执行节点")
-            response = self.reply_module.process(
+            record = ""
+            buffer = ''
+            async for chunk in self.reply_module.process(
                 conv_id,
                 user_input,
                 action_result["params"].get("intent", ""),
                 chat_history[-10:],
                 extra_context,
-            )
+            ):
+                record += chunk
+                buffer+=chunk
+                if len(buffer) >= 5 or any(p in buffer for p in ["。", "！", "？", ".", "!", "?", "\n"]):
+                    print(f'buffer的长度为{len(buffer)}内容是:{buffer}')
+                    for char in buffer:
+                        yield char
+                        if char in ["。", "！", "？", ".", "!", "?"]:
+                            await asyncio.sleep(0.1)
+                        else:
+                            await asyncio.sleep(0.01)
+                    buffer = ""  # 清空缓冲区
+                    print(f'buffer:{buffer}')
+                    await asyncio.sleep(0.02)
+            
+            if buffer:
+                for char in buffer:
+                    yield char
+                    await asyncio.sleep(0.02)
+
             query_recommend_content = await query_recommend.process(
                 user_input, chat_history, state.current_intent
             )
             if query_recommend_content:
-                response += f"\n\n{query_recommend_content}"
-                save_conv_turn(
-                    conv_id, user_input, response, state.current_intent, True
-                )
-            else:
-                save_conv_turn(
-                    conv_id, user_input, response, state.current_intent, False
-                )
+                record += f"\n\n{query_recommend_content}"
 
-            return response
+                separator = "\n\n"
+                yield separator
+                for char in query_recommend_content:
+                    yield char
+                    await asyncio.sleep(0.02)
+                save_conv_turn(conv_id, user_input, record, state.current_intent, True)
+            else:
+                save_conv_turn(conv_id, user_input, record, state.current_intent, False)
 
         # 意图信息补充不使用问题推荐
         elif action_result["action"] == "collect_slots":
@@ -309,7 +330,10 @@ class DialogueManager:
                 action_result["params"].get("intent", ""),
                 False,
             )
-            return response
+
+            for char in response:
+                yield char
+                await asyncio.sleep(0.06)
 
         else:
             logger.info(f'未执行回复模块,当前行为是:{action_result["action"]}')
@@ -336,7 +360,7 @@ class DialogueManager:
                     False,
                 )
 
-            return response
+            yield response
 
     # 只检索近5轮对话的意图
     def _get_intent_history(self, chat_history: list) -> str:

@@ -5,6 +5,8 @@ from src.common.util.function import group_conversations_by_time
 from datetime import datetime
 from src.model.dto.request import ChatQueryDTO, ConversationCreate
 from src.common.util import Result
+from fastapi.responses import StreamingResponse
+import asyncio
 
 router = APIRouter(prefix="/chat", tags=["聊天"])
 
@@ -70,6 +72,7 @@ async def chat(dto: ChatQueryDTO):
         dto.conv_id, priority
     )
 
-    ai_response = await chat_service.chat(dto, chat_history, extra_context)
-
-    return Result.ok(ai_response)
+    return StreamingResponse(
+        chat_service.chat(dto, chat_history, extra_context),
+        media_type="text/plain",
+    )

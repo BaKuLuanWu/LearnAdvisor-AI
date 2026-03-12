@@ -6,6 +6,7 @@ from langchain_core.runnables import RunnableLambda
 from src.model.schema.chat_schema import ChatMessage
 from src.dao import chat_dao
 from .router.main import dialogue_manager
+from fastapi.responses import StreamingResponse
 from src.config import setup_logging
 
 logger = setup_logging()
@@ -17,7 +18,8 @@ class ChatService:
         self.chat_dao = chat_dao
 
     async def chat(self, dto: ChatQueryDTO, chat_history: list, extra_context: str):
-        return await dialogue_manager.process(dto, chat_history, extra_context)
+        async for chunk in dialogue_manager.process(dto, chat_history, extra_context):
+            yield chunk
 
     def create_conversation(self, user_id: str, conv_title: str):
         return self.chat_dao.create_conversation(user_id, conv_title)
