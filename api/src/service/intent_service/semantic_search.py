@@ -108,6 +108,7 @@ class IntentRecognitionAgent:
             model="qwen2.5-3b-instruct",
             api_key=os.getenv("DASHSCOPE_API_KEY"),
             openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
+            temperature=0
         )
         self.search_tool = search_tool
         self.confidence_threshold = 0.6

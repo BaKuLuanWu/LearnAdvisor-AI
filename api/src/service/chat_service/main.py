@@ -3,9 +3,8 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnableWithMessageHistory
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.runnables import RunnableLambda
-from src.model.schema.chat_schema import ChatMessage
 from src.dao import chat_dao
-from .router.main import dialogue_manager
+from .ro_service import dialogue_manager
 from fastapi.responses import StreamingResponse
 from src.config import setup_logging
 
