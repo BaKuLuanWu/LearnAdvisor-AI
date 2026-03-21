@@ -68,7 +68,7 @@ class ReplyModule:
             else:
                 search_result = self.search_tool.process(user_input)
                 knowledge_context = (
-                    f"课程知识库:{knowledge}\n网络搜索结果:{search_result}"
+                    f"系统课程知识库:{knowledge}\n网络搜索结果:{search_result}"
                 )
                 prompt = PROFESSIONAL_CONSULTING.format(
                     extra_context=extra_context, knowledge=knowledge_context
