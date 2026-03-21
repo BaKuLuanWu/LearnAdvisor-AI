@@ -93,5 +93,4 @@ class ReplyModule:
         for chunk in self.llm.stream(messages):
             if chunk.content:
                 yield chunk.content
-                print(1)
                 await asyncio.sleep(0)

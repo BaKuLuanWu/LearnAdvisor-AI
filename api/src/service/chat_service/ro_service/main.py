@@ -47,7 +47,6 @@ class DialogueManager:
         )
 
         if action_result["action"] == "execute_task":
-            print("执行节点")
             record = ""
             buffer = ""
             async for chunk in self.reply_module.process(
@@ -62,7 +61,6 @@ class DialogueManager:
                 if len(buffer) >= 5 or any(
                     p in buffer for p in ["。", "！", "？", ".", "!", "?", "\n"]
                 ):
-                    print(f"buffer的长度为{len(buffer)}内容是:{buffer}")
                     for char in buffer:
                         yield char
                         if char in ["。", "！", "？", ".", "!", "?"]:
@@ -70,7 +68,6 @@ class DialogueManager:
                         else:
                             await asyncio.sleep(0.01)
                     buffer = ""  # 清空缓冲区
-                    print(f"buffer:{buffer}")
                     await asyncio.sleep(0.02)
             # 抛出剩余字符
             if buffer:
