@@ -73,7 +73,7 @@ class ScheduleTask:
             logger.error(f"定时任务出错，原因为:{e}")
 
     def _need_summary_level1(self, conv_id: str) -> tuple[int, int]:
-        max_turn = self.dao.get_max_turn(conv_id)
+        max_turn = self.dao.get_max_turn(conv_id) or 0
         print(f"消息表中最大轮次:{max_turn}")
         recent_summary = self.dao.get_recent_summary(conv_id)
         print(f"摘要表中最大轮次:{max_turn}")
@@ -165,8 +165,8 @@ class ScheduleTask:
         print("生成完毕")
 
     def _need_summary_level2(self, conv_id: str) -> tuple[int, int]:
-        lv1_end_index = self.dao.get_recent_summary_level1_end_index(conv_id)
-        lv2_end_index = self.dao.get_recent_summary_level2_end_index(conv_id)
+        lv1_end_index = self.dao.get_recent_summary_level1_end_index(conv_id) or 0
+        lv2_end_index = self.dao.get_recent_summary_level2_end_index(conv_id) or 0
         if lv1_end_index - lv2_end_index > 14:
             return (lv2_end_index + 1, lv1_end_index)
         else:
