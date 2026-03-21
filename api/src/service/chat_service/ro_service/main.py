@@ -104,7 +104,7 @@ class DialogueManager:
             )
             for char in response:
                 yield char
-                await asyncio.sleep(0.06)
+                await asyncio.sleep(0.02)
 
         else:
             response = action_result["response"]
