@@ -58,7 +58,7 @@ class TaskRouter:
 
         if new_intent == "unknown":
             return self.action_handlers["ask_clarification"](
-                state, "抱歉，这个问题我无法回答。", "unknown"
+                "抱歉，这个问题我无法回答。", "unknown"
             )
 
         # 新对话
