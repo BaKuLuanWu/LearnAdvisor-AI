@@ -27,6 +27,7 @@ class ReplyModule:
             model="qwen-plus",
             api_key=os.getenv("DASHSCOPE_API_KEY"),
             openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
+            temperature=0.4
         )
 
     async def process(
