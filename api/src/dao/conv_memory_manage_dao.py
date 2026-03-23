@@ -45,9 +45,7 @@ class ConvMemoryManageDao:
             }
 
     def get_key_sentences(self, conv_id: str):
-        key_sentences = (
-            "1.2008年金融危机对全球产生广泛影响。\n2.近几年中国GDP稳步增长。"
-        )
+        key_sentences = None
         return key_sentences or ""
 
     def get_summaries(self, conv_id: str):
