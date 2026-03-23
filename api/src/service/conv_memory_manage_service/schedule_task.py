@@ -38,7 +38,7 @@ class ScheduleTask:
         self.cache = {}
         print("定时器启动！")
 
-        schedule.every(1).minutes.do(lambda: self.process(True))
+        schedule.every(10).minutes.do(lambda: self.process(True))
         # 启动调度线程
         self._start_schedule_thread()
 
