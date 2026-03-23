@@ -77,7 +77,7 @@ class TaskRouter:
             kw in state.user_input
             for kw in ["等一下", "先别管", "换个", "另外", "对了"]
         ):
-            self.action_handlers["switch_task"](state, new_intent)
+            self.action_handlers["switch_task"](state)
             for slot_name, value in new_slots.items():
                 state.update_slot(slot_name, value)
 
