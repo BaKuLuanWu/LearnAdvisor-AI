@@ -211,4 +211,5 @@ __marimo__/
 
 # Api 后端
 api/create_tables.py
+api/test_redis.py
 

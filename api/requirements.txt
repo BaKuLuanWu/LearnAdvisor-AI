@@ -35,3 +35,6 @@ python-docx==1.1.0
 
 # 阿里云
 dashscope==1.14.0
+
+# 性能优化
+redis==7.3.0 # redis服务器>5.0

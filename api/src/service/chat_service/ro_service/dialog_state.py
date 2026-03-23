@@ -34,12 +34,37 @@ class DialogState:
         """获取缺失的必要槽位"""
         return [slot for slot in self.required_slots if slot not in self.slots]
 
-    def to_dict(self) -> Dict:
-        """转换为字典"""
+    def to_dict(self) -> dict:
+        """将 DialogState 对象转换为字典"""
         return {
             "conv_id": self.conv_id,
-            "current_intent": (self.current_intent if self.current_intent else None),
+            "user_input": self.user_input,
+            "intent": self.intent,
             "slots": self.slots,
-            "missing_slots": self.get_missing_slots(),
-            "history_length": len(self.history),
+            "required_slots": self.required_slots,
+            "history": self.history,
+            "task_stack": self.task_stack,
+            "task_map": self.task_map,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "last_updated": self.last_updated.isoformat() if self.last_updated else None
         }
+    
+    @classmethod
+    def from_dict(cls, data: dict) -> 'DialogState':
+        """从字典恢复 DialogState 对象"""
+        state = cls(conv_id=data["conv_id"])
+        state.user_input = data.get("user_input", "")
+        state.intent = data.get("intent")
+        state.slots = data.get("slots", {})
+        state.required_slots = data.get("required_slots", [])
+        state.history = data.get("history", [])
+        state.task_stack = data.get("task_stack", [])
+        state.task_map = data.get("task_map", {})
+        
+        # 处理时间字段
+        if data.get("created_at"):
+            state.created_at = datetime.fromisoformat(data["created_at"])
+        if data.get("last_updated"):
+            state.last_updated = datetime.fromisoformat(data["last_updated"])
+        
+        return state

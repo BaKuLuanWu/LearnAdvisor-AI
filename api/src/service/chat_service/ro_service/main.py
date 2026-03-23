@@ -33,21 +33,21 @@ class DialogueManager:
             upload_file_service.process_files(dto.files)
 
         # 获取或创建对话状态
-        if conv_id not in self.conversations:
-            self.conversations[conv_id] = DialogState(conv_id)
-        state = self.conversations[conv_id]
+        state = self.chat_dao.get_dialog_state(conv_id)
+        print(f"状态机的值:{state.to_dict()}")
 
         state.user_input = user_input
         intent_history = self._get_intent_history(chat_history[-10:])
         print(f"意图识别历史结果:{intent_history}")
 
         # 路由决策
-        action_result = self.task_router.decide_next_action(
-            state, intent_history
-        )
+        action_result = self.task_router.decide_next_action(state, intent_history)
 
+        ai_response = ""
+        intent = ""
+        recommend = False
         if action_result["action"] == "execute_task":
-            record = ""
+            intent = state.intent
             buffer = ""
             async for chunk in self.reply_module.process(
                 conv_id,
@@ -57,7 +57,7 @@ class DialogueManager:
                 chat_history[-10:],
                 extra_context,
             ):
-                record += chunk
+                ai_response += chunk
                 buffer += chunk
                 if len(buffer) >= 5 or any(
                     p in buffer for p in ["。", "！", "？", ".", "!", "?", "\n"]
@@ -80,56 +80,34 @@ class DialogueManager:
                 user_input, chat_history, state.intent
             )
             if query_recommend_content:
-                record += f"\n\n{query_recommend_content}"
+                ai_response += f"\n\n{query_recommend_content}"
+                recommend = True
                 separator = "\n\n"
                 yield separator
                 for char in query_recommend_content:
                     yield char
                     await asyncio.sleep(0.02)
-                self.chat_dao.save_round_of_conv(
-                    conv_id, user_input, record, state.intent, True
-                )
-            else:
-                self.chat_dao.save_round_of_conv(
-                    conv_id, user_input, record, state.intent, False
-                )
 
         elif action_result["action"] == "collect_slots":
-            response = action_result["response"]
-            self.chat_dao.save_round_of_conv(
-                conv_id,
-                user_input,
-                response,
-                action_result["params"].get("intent", ""),
-                False,
-            )
-            for char in response:
+            intent = action_result["intent"]
+            ai_response = action_result["response"]
+            for char in ai_response:
                 yield char
                 await asyncio.sleep(0.02)
 
         else:
-            response = action_result["response"]
+            intent = "unknown"
+            ai_response = action_result["response"]
             query_recommend_content = await query_recommend.process(
                 user_input, chat_history, action_result["params"].get("intent", "")
             )
             if query_recommend_content:
-                response += f"\n\n{query_recommend_content}"
-                self.chat_dao.save_round_of_conv(
-                    conv_id,
-                    user_input,
-                    response,
-                    action_result["params"].get("intent", ""),
-                    True,
-                )
-            else:
-                self.chat_dao.save_round_of_conv(
-                    conv_id,
-                    user_input,
-                    response,
-                    action_result["params"].get("intent", ""),
-                    False,
-                )
-            yield response
+                ai_response += f"\n\n{query_recommend_content}"
+                recommend = True
+            yield ai_response
+        state.add_history("user_input", user_input)
+        state.add_history("assistant", ai_response)
+        self.chat_dao.save_round_of_conv(conv_id, state, ai_response, intent, recommend)
 
     # 检索工作记忆的意图历史
     def _get_intent_history(self, chat_history: list) -> str:

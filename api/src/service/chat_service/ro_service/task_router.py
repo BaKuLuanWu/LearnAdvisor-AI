@@ -139,7 +139,7 @@ class TaskRouter:
             return {
                 "action": "collect_slots",
                 "response": "请问你想问的是关于它的课程信息还是行业咨询？",
-                "params": {"slot_name": slot_name, "intent": state.intent},
+                "params": {"slot_name": slot_name, "intent": "unknown"},
             }
 
         question = slot_questions.get(slot_name, f"请提供{slot_name}的相关信息。")
