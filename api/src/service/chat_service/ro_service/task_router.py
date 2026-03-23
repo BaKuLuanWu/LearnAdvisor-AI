@@ -140,10 +140,10 @@ class TaskRouter:
         return {
             "action": "execute_task",
             "response": "执行回复模块",
-            "params": {"intent": state.intent},
+            "params": {"intent": state.intent,"slots":state.slots},
         }
 
-    def _handle_switch_task(self, state: DialogState, new_intent: str) -> Dict:
+    def _handle_switch_task(self, state: DialogState) -> Dict:
         """处理任务切换"""
 
         # 在映射表中查看相同任务

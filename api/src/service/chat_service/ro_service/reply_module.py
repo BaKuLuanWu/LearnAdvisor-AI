@@ -10,6 +10,7 @@ import asyncio
 from src.infra.search_tool import search_tool
 from src.dao import chat_dao
 from src.service.upload_file_service import UploadFileService
+from .dialog_state import DialogState
 from src.config import setup_logging
 
 logger = setup_logging()
@@ -27,7 +28,7 @@ class ReplyModule:
             model="qwen-plus",
             api_key=os.getenv("DASHSCOPE_API_KEY"),
             openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
-            temperature=0.4
+            temperature=0.4,
         )
 
     async def process(
@@ -35,6 +36,7 @@ class ReplyModule:
         conv_id: str,
         user_input: str,
         intent: str,
+        slots,
         chat_history: list,
         extra_context: str,
     ):
@@ -53,7 +55,17 @@ class ReplyModule:
             )
 
         else:
-            docs = self.chat_dao.get_documents(user_input)
+            keyword = ""
+            if not slots:
+                keyword = user_input
+            else:
+                kws = set()
+                for value in slots.values():
+                    if value not in kws:
+                        keyword += f"{value} "
+                        kws.add(value)
+            print(f"rag检索内容:{keyword}")
+            docs = self.chat_dao.get_documents(keyword)
             knowledge = ""
             i = 0
             for doc in docs:
@@ -64,9 +76,8 @@ class ReplyModule:
                 prompt = COURSE_QUERY_AND_ANSWER.format(
                     extra_context=extra_context, knowledge=knowledge
                 )
-
             else:
-                search_result = self.search_tool.process(user_input)
+                search_result = self.search_tool.process(keyword)
                 knowledge_context = (
                     f"系统课程知识库:{knowledge}\n网络搜索结果:{search_result}"
                 )
@@ -74,7 +85,9 @@ class ReplyModule:
                     extra_context=extra_context, knowledge=knowledge_context
                 )
 
-        async for chunk in self._get_ai_response_simple(user_input, prompt, chat_history):
+        async for chunk in self._get_ai_response_simple(
+            user_input, prompt, chat_history
+        ):
             yield chunk
 
     # 近期记忆只有最近五轮

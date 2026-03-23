@@ -53,6 +53,7 @@ class DialogueManager:
                 conv_id,
                 user_input,
                 action_result["params"].get("intent", ""),
+                action_result["params"].get("slots", {}),
                 chat_history[-10:],
                 extra_context,
             ):
