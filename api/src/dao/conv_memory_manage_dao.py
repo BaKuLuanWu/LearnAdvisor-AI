@@ -1,4 +1,9 @@
-from src.infra.sql_db.repo import conv_repo, summary_repo, message_repo
+from src.infra.sql_db.repo import (
+    conv_repo,
+    summary_repo,
+    message_repo,
+    user_persona_repo,
+)
 from src.model.schema.chat_schema import Summary
 from src.infra.sql_db.entity.summary_entity import SummaryEntity
 
@@ -9,6 +14,7 @@ class ConvMemoryManageDao:
         self.conv_repo = conv_repo
         self.message_repo = message_repo
         self.summary_repo = summary_repo
+        self.user_persona_repo = user_persona_repo
 
     def get_chat_history(self, conv_id: str):
         conv = self.conv_repo.get_by_id(conv_id=conv_id)
@@ -20,17 +26,23 @@ class ConvMemoryManageDao:
 
     def get_user_persona(self, conv_id: str):
         user_persona = self.conv_repo.get_user_persona(conv_id)
-        if user_persona == None:
-            return "\n兴趣偏好：该用户对投资很感兴趣"
-
-        if user_persona.basic_profile:
-            user_persona_text += f"\n个人信息：{user_persona.basic_profile}"
-        if user_persona.interests:
-            user_persona_text += f"\n兴趣偏好：{user_persona.interests}"
-        if user_persona.dislikes:
-            user_persona_text += f"\n反感点：{user_persona.dislikes}"
-
-        return user_persona_text
+        if not user_persona:
+            return None
+        else:
+            return {
+                "user_role": user_persona.user_role,
+                "major": user_persona.major,
+                "grade": user_persona.grade,
+                "learning_goal": user_persona.learning_goal,
+                "current_courses": user_persona.current_courses,
+                "knowledge_interests": user_persona.knowledge_interests,
+                "question_types": user_persona.question_types,
+                "file_analysis_preference": user_persona.file_analysis_preference,
+                "reply_style_preference": user_persona.reply_style_preference,
+                "knowledge_level": user_persona.knowledge_level,
+                "topic_preferences": user_persona.topic_preferences,
+                "dislikes": user_persona.dislikes,
+            }
 
     def get_key_sentences(self, conv_id: str):
         key_sentences = (
@@ -77,8 +89,13 @@ class ConvMemoryManageDao:
     def get_recent_summary_level2_end_index(self, conv_id: str):
         return self.summary_repo.get_recent_summary_level2_end_index(conv_id)
 
-    def get_summary_level1_list(self, conv_id: str):
-        entity_list = self.summary_repo.get_summary_level1_list(conv_id)
+    def get_summary_level2_count(self, conv_id: str):
+        return self.summary_repo.get_summary_level2_count(conv_id)
+
+    def get_summary_list_by_compress_times(self, conv_id: str, compress_times: int):
+        entity_list = self.summary_repo.get_summary_list_by_compress_times(
+            conv_id, compress_times
+        )
         summaries = []
         for entity in entity_list:
             summary = Summary(
@@ -91,6 +108,9 @@ class ConvMemoryManageDao:
             )
             summaries.append(summary)
         return summaries
+
+    def update_user_persona(self, conv_id, user_persona, start_index, end_index):
+        self.user_persona_repo.update_user_persona(conv_id, user_persona, start_index, end_index)
 
 
 conv_memory_manage_dao = ConvMemoryManageDao()

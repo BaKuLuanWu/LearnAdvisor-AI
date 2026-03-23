@@ -4,6 +4,7 @@ from .message_repo import message_repo
 from .upload_file import upload_file_repo
 from .hot_question_repo import hot_question_repo
 from .summary_repo import summary_repo
+from .user_persona_repo import user_persona_repo
 
 
 __all__ = [
@@ -13,4 +14,5 @@ __all__ = [
     "upload_file_repo",
     "hot_question_repo",
     "summary_repo",
+    "user_persona_repo"
 ]

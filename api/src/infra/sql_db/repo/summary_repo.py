@@ -68,17 +68,29 @@ class SummaryRepository:
                 SummaryEntity.end_index <= end_index,
             ).update({SummaryEntity.is_active: True}, synchronize_session=False)
 
-    def get_summary_level1_list(self, conv_id: str):
+    def get_summary_list_by_compress_times(self, conv_id: str, compress_times: int):
         with db_manager.session_scope() as session:
             return (
                 session.query(SummaryEntity)
                 .filter(
                     SummaryEntity.conversation_id == conv_id,
-                    SummaryEntity.compress_times == 1,
+                    SummaryEntity.compress_times == compress_times,
                     SummaryEntity.is_active == True,
                 )
                 .order_by(SummaryEntity.start_index)
                 .all()
+            )
+
+    def get_summary_level2_count(self, conv_id: str):
+        with db_manager.session_scope() as session:
+            return (
+                session.query(SummaryEntity)
+                .filter(
+                    SummaryEntity.conversation_id == conv_id,
+                    SummaryEntity.compress_times == 2,
+                    SummaryEntity.is_active == True,
+                )
+                .count()
             )
 
 

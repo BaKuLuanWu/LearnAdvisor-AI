@@ -1,12 +1,17 @@
 from langchain_openai import ChatOpenAI
 from src.model.schema.chat_schema import Summary
-from src.config.prompt.conv_memory_manage import SUMMARY_LEVEL1, SUMMARY_LEVEL2
+from src.config.prompt.conv_memory_manage import (
+    SUMMARY_LEVEL1,
+    SUMMARY_LEVEL2,
+    User_Persona,
+)
 from src.dao import conv_memory_manage_dao
 import os
 import json
 import schedule
 import time
 import threading
+from datetime import datetime
 from src.config.settings import setup_logging
 
 logger = setup_logging()
@@ -27,12 +32,13 @@ class ScheduleTask:
             model="qwen-plus",
             api_key=os.getenv("DASHSCOPE_API_KEY"),
             openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
+            temperature=0.1,
         )
 
         self.cache = {}
         print("定时器启动！")
 
-        schedule.every(2).minutes.do(lambda: self.process(True))
+        schedule.every(1).minutes.do(lambda: self.process(True))
         # 启动调度线程
         self._start_schedule_thread()
 
@@ -63,12 +69,20 @@ class ScheduleTask:
                 else:
                     print("目前无需要一级摘要的对话")
 
+                # 触发二级摘要
                 if self.cache[conv_id]["lv1_summary_count"] % 6 == 0 or open:
                     start_index2, end_index2 = self._need_summary_level2(conv_id)
                     if not start_index2 or not end_index2:
                         print("目前无需要二次摘要的对话")
                     else:
                         self._generate_summary_level2(conv_id)
+
+                # 触发用户画像
+                if (
+                    datetime.now().strftime("%H:%M") > "11:30"
+                    and datetime.now().strftime("%H:%M") < "12:00"
+                ):
+                    self._need_user_persona(conv_id)
         except Exception as e:
             logger.error(f"定时任务出错，原因为:{e}")
 
@@ -174,7 +188,7 @@ class ScheduleTask:
 
     def _generate_summary_level2(self, conv_id: str):
         print("正在生成二级摘要...")
-        level1_summaries = self.dao.get_summary_level1_list(conv_id)
+        level1_summaries = self.dao.get_summary_list_by_compress_times(conv_id, 1)
         prompt_msg = {"role": "system", "content": SUMMARY_LEVEL2}
         user_input = ""
         level2_summaries = []
@@ -213,10 +227,91 @@ class ScheduleTask:
             current_turn = result["max_turn"] + 1
 
         self.dao.add_lv2_summaries(level2_summaries, conv_id, start_index, end_index)
-        print("生成完毕")
+        print("二级摘要生成完毕")
 
-    def _generate_user_persona():
-        pass
+    def _need_user_persona(self, conv_id: str):
+        level2_summary_count = self.dao.get_summary_level2_count(conv_id)
+        if level2_summary_count >= 8:
+            print(f"对话:{conv_id}需生成用户画像")
+            self._generate_user_persona(conv_id)
+
+    def _generate_user_persona(self, conv_id: str):
+        print("正在生成用户画像")
+        level2_summaries = self.dao.get_summary_list_by_compress_times(conv_id, 2)
+        user_persona = self.dao.get_user_persona(conv_id)
+        if not user_persona:
+            user_persona = {
+                "user_role": None,
+                "major": None,
+                "grade": None,
+                "learning_goal": [],
+                "current_courses": [],
+                "knowledge_interests": [],
+                "question_types": [],
+                "file_analysis_preference": None,
+                "reply_style_preference": None,
+                "knowledge_level": None,
+                "topic_preferences": [],
+                "dislikes": [],
+            }
+        user_persona_json = json.dumps(user_persona, ensure_ascii=False, indent=2)
+        left = level2_summaries[0].start_index
+        left_i = 0
+        end_pos = 0
+        for i in range(len(level2_summaries) - 2):
+            right = level2_summaries[i].end_index
+            right_i = i
+            if right - left >= 20:
+                messages = self.dao.get_messages_by_range(conv_id, left, right)
+                content = f"已有画像:\n{user_persona_json}\n\n用户输入:\n"
+                for j, msg in enumerate(messages):
+                    if msg.role == "user":
+                        content += f"{int(j/2)+1}.{msg.content}\n"
+                content += "\n对话摘要:\n"
+                for t in range(left_i, right_i + 1):
+                    content += f"{t-left_i+1}.{level2_summaries[t].content}\n"
+
+                prompt_msg = {"role": "system", "content": User_Persona}
+                print(f"用户画像的用户输入:{content}")
+                response = self.llm.invoke(
+                    [prompt_msg, {"role": "user", "content": content}]
+                ).content
+                print(f"摘要结果:{response}")
+                user_persona_json = response
+                end_pos = right
+
+                content = ""
+                left = level2_summaries[i + 1].start_index
+                left_i = i + 1
+            # 防止剩余摘要接近20但没被处理
+            elif i == len(level2_summaries) - 3 and right - left > 14:
+                logger.info("有剩余摘要")
+                messages = self.dao.get_messages_by_range(conv_id, left, right)
+                content = f"已有画像:\n{user_persona_json}\n\n用户输入:\n"
+                for j, msg in enumerate(messages):
+                    if msg.role == "user":
+                        content += f"{int(j/2)+1}.{msg.content}\n"
+                content += "\n对话摘要:\n"
+                for t in range(left_i, i):
+                    content += f"{t-left_i+1}.{level2_summaries[t].content}\n"
+
+                prompt_msg = {"role": "system", "content": User_Persona}
+                print(f"用户画像的用户输入:{content}")
+                response = self.llm.invoke(
+                    [prompt_msg, {"role": "user", "content": content}]
+                ).content
+                print(f"摘要结果:{response}")
+                user_persona_json = response
+                end_pos = level2_summaries[i].end_index
+        try:
+            user_persona = json.loads(user_persona_json)
+            print(f"json转化:{user_persona}")
+            self.dao.update_user_persona(
+                conv_id, user_persona, level2_summaries[0].start_index, end_pos
+            )
+        except json.JSONDecodeError as e:
+            logger.error(f"操作失败，错误为{e}")
+            print("模型没返回JSON，任务执行失败！")
 
     def _save_key_sentence():
         pass
