@@ -35,14 +35,14 @@ class TaskRouter:
             return self._decide_based_on_state(state)
 
         # 用户意图不清晰，例如“我想问金融”，无法确定是课程问答/专业咨询
-        title_match_result =title_match.process(state.user_input)
+        title_match_result = title_match.process(state.user_input)
         if title_match_result:
             if state.intent not in [
                 "course_query_and_answer",
                 "professional_consulting",
             ]:
-                state.update_slot('course', title_match_result)
-                state.update_slot('profession', title_match_result)
+                state.update_slot("course", title_match_result)
+                state.update_slot("profession", title_match_result)
                 return self._handle_collect_slots(state, None)
             else:
                 new_slots = IntentRecognizer()._extract_slots(state.user_input)
@@ -55,6 +55,7 @@ class TaskRouter:
         )
         new_intent = new_intent_result["intent"]
         new_slots = new_intent_result["slots"]
+        print(f'意图识别结果处的slots:{new_slots}')
 
         if new_intent == "unknown":
             return self.action_handlers["ask_clarification"](
@@ -78,15 +79,28 @@ class TaskRouter:
             for kw in ["等一下", "先别管", "换个", "另外", "对了"]
         ):
             self.action_handlers["switch_task"](state)
+            # 规则引擎返回，不带slots，使用映射表里相同意图的slots
+            if not new_slots:
+                print('意图识别的slots为空')
+                for value in state.task_map.values():
+                    if new_intent == value.get("intent"):
+                        new_slots = value.get("slots")
+                        break
             for slot_name, value in new_slots.items():
                 state.update_slot(slot_name, value)
-
+            state.intent=new_intent
             return self._decide_based_on_state(state)
 
         # 意图不变
         else:
-            for slot_name, value in new_slots.items():
-                state.update_slot(slot_name, value)
+            # 规则引擎返回，不带slots，沿用上一次状态机的slots，因为当前意图没变
+            if not new_slots:
+                print('获取上一次状态机')
+                for slot_name, value in state.slots.items():
+                    state.update_slot(slot_name, value)
+            else:
+                for slot_name, value in new_slots.items():
+                    state.update_slot(slot_name, value)
             return self._decide_based_on_state(state)
 
     def _decide_based_on_state(self, state: DialogState) -> Dict:
@@ -140,7 +154,7 @@ class TaskRouter:
         return {
             "action": "execute_task",
             "response": "执行回复模块",
-            "params": {"intent": state.intent,"slots":state.slots},
+            "params": {"intent": state.intent, "slots": state.slots},
         }
 
     def _handle_switch_task(self, state: DialogState) -> Dict:
