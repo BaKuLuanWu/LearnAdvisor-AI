@@ -164,7 +164,7 @@ class DeepSeekChatFrontend:
         """加载CSS文件"""
         css_file = "styles.css"
 
-        # 如果CSS文件存在，读取内容
+        # CSS文件存在，读取内容
         if os.path.exists(css_file):
             with open(css_file, "r", encoding="utf-8") as f:
                 return f.read()
