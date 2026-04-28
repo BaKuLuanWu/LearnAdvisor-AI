@@ -36,7 +36,7 @@ class DeepSeekChatFrontend:
         css_content = self._load_css()
 
         with gr.Blocks(
-            title="智能课程咨询助手",
+            title="忆伴",
             theme=gr.themes.Soft(),
             css=css_content,
             fill_width=True,
