@@ -62,7 +62,7 @@ def create_sidebar(api_client:APIClient):
 
     with gr.Column(scale=1, min_width=250, elem_classes="sidebar-container") as sidebar:
 
-        gr.Markdown("# 🐋 智能课程咨询助手", elem_classes="sidebar-title")
+        gr.Markdown("# 🐋 忆伴", elem_classes="sidebar-title")
 
         # 新建对话按钮
         new_chat_btn = gr.Button(
