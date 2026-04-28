@@ -2,10 +2,10 @@
 忆伴是一款基于RAG（检索增强生成）架构的知识增强型对话系统，专为技术学习者和职场新人打造。它以深度意图理解与个性化知识适配为核心，让每一次交互既精准落地，又懂你所需。
 
 ## 👆在线体验
-HuggingFace：
+HuggingFace：加载失败
 
 ## 🎬界面预览
-占位
+加载失败
 
 ## 🎯功能特性
 意图识别：三层递进架构（规则引擎 → 向量检索 → 大模型兜底），支持模糊意图二次识别（联网搜索增强）
@@ -96,35 +96,6 @@ api.src
 |   |   ├──rule_engine.py                # 正则+关键词权重匹配
 |   |   └── semantic_search.py           # 个人库/公共库向量检索 + LLM兜底识别(联网搜索)
 |   └── upload_file_service/             # 多格式文件解析模块
-
-
-    ├── intent_recognition/
-    │   ├── rule_engine.py          
-    │   ├── vector_retrieval.py     # 
-    │   └── model_recognizer.py     # 
-    ├── rag/
-    │   ├── chroma_client.py        # 课程知识库向量化与检索
-    │   └── retriever.py            # top-k召回 + 上下文构造
-    ├── file_upload/
-    │   ├── parser.py               # 根据扩展名调用解析器
-    │   ├── cleaner.py              # 编码统一、乱码过滤
-    │   └── chunker.py              # 语义切块 + 元数据关联
-    ├── context_management/
-    │   ├── summary.py              # 一级/二级摘要定时任务
-    │   ├── key_sentence.py         # 关键句识别与存储
-    │   └── user_profile.py        # 画像生成（每日0点）
-    ├── conversation_routing/
-    │   ├── router.py               # 多轮状态机 + 槽位填充
-    │   └── stack_context.py       # 旧意图栈管理
-    ├── question_recommendation/
-    │   ├── intent_strategy.py      # 不同意图的模板/标签生成
-    │   └── frequency_controller.py # 推荐分数动态调整
-    ├── performance/
-    │   ├── redis_cache.py          # 会话缓存 + 工作记忆队列
-    │   ├── async_tasks.py          # 异步模型/数据库调用
-    │   └── db_indexes.sql          # 联合索引创建语句
-    ├── tests/                      # 功能测试（意图、RAG、文件上传等）
-    └── config_settings.py          # 日志、数据库配置
 ```
 ## 🚀快速开始
 环境准备：Python 3.9+，安装前后端依赖 pip install -r requirements.txt
@@ -147,4 +118,4 @@ api.src
 - 用户行为分析：离线分析历史对话，获取可挖掘细节，生成更个性化的问题推荐
 
 ## 📙开发文档
-https://ccn6few6uwq2.feishu.cn/wiki/AZhPwNZiriH0uEk5HSZccfNtnpf?from=from_copylink
+https://ccn6few6uwq2.feishu.cn/wiki/AmiawSK1Mi0bCGkFfPhcRapBn9g
